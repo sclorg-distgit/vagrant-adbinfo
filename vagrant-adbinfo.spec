@@ -6,14 +6,14 @@
 
 Name: %{?scl_prefix}%{vagrant_plugin_name}
 Version: 0.0.9
-Release: 3%{?dist}
+Release: 4%{?dist}
 Summary: Connection and configuration for a Docker daemon
 Group: Development/Languages
 License: GPLv2
 URL: https://github.com/projectatomic/vagrant-adbinfo
 Source0: https://rubygems.org/gems/%{vagrant_plugin_name}-%{version}.gem
-Requires(posttrans): vagrant
-Requires(preun): vagrant
+Requires(posttrans): %{?scl_prefix}vagrant
+Requires(preun): %{?scl_prefix}vagrant
 Requires: %{?scl_prefix}vagrant
 BuildRequires: %{?scl_prefix}vagrant
 BuildArch: noarch
@@ -47,11 +47,8 @@ gem spec %{SOURCE0} -l --ruby > %{vagrant_plugin_name}.gemspec
 # Create the gem as gem install only works on a gem file
 %{?scl:scl enable %{scl} - << \EOF}
 gem build %{vagrant_plugin_name}.gemspec
-%{?scl:EOF}
-
-# %%vagrant_plugin_install compiles any C extensions and installs the gem into ./%%gem_dir
-# by default, so that we can move it into the buildroot in %%install
 %vagrant_plugin_install
+%{?scl:EOF}
 
 %install
 mkdir -p %{buildroot}%{vagrant_plugin_dir}
@@ -66,12 +63,12 @@ pushd .%{vagrant_plugin_instdir}
 popd
 
 %posttrans
-%{?scl:scl enable %{scl} - << \EOF}
+%{?scl:env -i - scl enable %{scl} - << \EOF}
 %vagrant_plugin_register %{vagrant_plugin_name}
 %{?scl:EOF}
 
 %preun
-%{?scl:scl enable %{scl} - << \EOF}
+%{?scl:env -i - scl enable %{scl} - << \EOF}
 %vagrant_plugin_unregister %{vagrant_plugin_name}
 %{?scl:EOF}
 
@@ -95,6 +92,10 @@ popd
 %{vagrant_plugin_instdir}/vagrant-adbinfo.spec
 
 %changelog
+* Tue Jan 05 2016 Pavel Valena <pvalena@redhat.com> - 0.0.9-4
+- Fix scl prefix for vagrant
+- Clear environment for scriptlets
+
 * Fri Dec 04 2015 Josef Stribny - 0.0.9-4
 - Add scl macros
 
